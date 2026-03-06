@@ -225,7 +225,7 @@ class TricountHandler:
 
         Each transaction will be processed by the `prepare_transaction_data` method and written to the file.
         """
-        with open(f"{file_name}.csv", "w") as csvfile:
+        with open(f"{file_name.replace("/", "")}.csv", "w", encoding="utf-8") as csvfile:
             headers = ["Who Paid", "Total", "Currency", "Description", "When", "Involved", "File Names", "Attachment URLs", "Category"]
             transaction_writer = csv.writer(csvfile, delimiter=";")
             transaction_writer.writerow(headers)
@@ -268,29 +268,36 @@ class TricountHandler:
             print(f"Transactions have been saved to {file_name}.csv.")
 
 
+TRICOUNT_KEYS = {
+    'tricount_name': 'tricount_key', # change accordingly
+}
+
+print(len(TRICOUNT_KEYS.values()))
+
 if __name__ == "__main__":
     # example key
-    tricount_key = "tISWyMCgrIMgFuxudZ"
+    for tricount_name, tricount_key in TRICOUNT_KEYS.items():
+        print(tricount_name)
 
-    api = TricountAPI()
-    api.authenticate()
-    data = api.fetch_tricount_data(tricount_key)
+        api = TricountAPI()
+        api.authenticate()
+        data = api.fetch_tricount_data(tricount_key)
 
-    # save data to local file
-    with open('response_data.json', 'w') as f:
-        json.dump(data, f, indent=2)
+        # save data to local file
+        with open('response_data.json', 'w') as f:
+            json.dump(data, f, indent=2)
 
-    # load data from local file
-    #with open('response_data.json', 'r') as f:
-    #    data = json.load(f)
+        # load data from local file
+        #with open('response_data.json', 'r') as f:
+        #    data = json.load(f)
 
-    handler = TricountHandler()
-    tricount_title = handler.get_tricount_title(data)
+        handler = TricountHandler()
+        tricount_title = handler.get_tricount_title(data)
 
-    memberships, transactions = handler.parse_tricount_data(data)
+        memberships, transactions = handler.parse_tricount_data(data)
 
-    handler.write_to_csv(transactions, file_name=f"Transactions {tricount_title}")
+        handler.write_to_csv(transactions, file_name=f"Tricount {tricount_title}")
 
-    #handler.write_to_excel(transactions, file_name=f"Transactions {tricount_title}")
-    #handler.write_to_sesterce_csv(memberships, transactions, f"Transaction {tricount_title} (Sesterce)")
-    #handler.download_attachments(transactions, download_folder=f"Attachments {tricount_title}")
+        #handler.write_to_excel(transactions, file_name=f"Transactions {tricount_title}")
+        #handler.write_to_sesterce_csv(memberships, transactions, f"Transaction {tricount_title} (Sesterce)")
+        handler.download_attachments(transactions, download_folder=f"Attachments {tricount_title}")
